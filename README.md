@@ -165,9 +165,9 @@ LocalStack's community edition [sunset in March 2026](https://blog.localstack.cl
 |---|:---:|:---:|
 | Auth token required | No | Yes |
 | Security updates | Yes | Frozen |
-| Startup time | ~24 ms | ~3.3 s |
-| Idle memory | ~13 MiB | ~143 MiB |
-| Docker image size | ~90 MB | ~1.0 GB |
+| Startup time | ~10 ms | ~3.3 s |
+| Idle memory | ~15 MiB | ~143 MiB |
+| Docker image size | ~30 MB | ~1.0 GB |
 | License | MIT | Restricted |
 | API Gateway v2 / HTTP API | Yes | No |
 | Cognito | Yes | No |
@@ -186,11 +186,12 @@ flowchart LR
     Client["AWS SDK / CLI"]
 
     subgraph CloudStack ["CloudStack, port 4566"]
-        Router["HTTP Router\nJAX-RS / Vert.x"]
+        Router["HTTP Router\nGo ServeMux / Dispatcher"]
 
         subgraph Stateless ["Stateless Services"]
             A["SSM · SQS · SNS\nIAM · STS · KMS\nSecrets Manager · SES\nCognito · Kinesis\nEventBridge · Scheduler · AppConfig\nCloudWatch · Step Functions\nCloudFormation · ACM · Config\nAPI Gateway · ELB v2 · Auto Scaling\nCodeDeploy · Backup · Bedrock Runtime · Route53 · Transfer"]
         end
+
 
         subgraph Stateful ["Stateful Services"]
             B["S3 · DynamoDB\nDynamoDB Streams"]
