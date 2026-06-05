@@ -1,0 +1,28 @@
+# CloudStack - Go Build Artifacts
+cloudstack
+cloudstack-go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Persistence Data
+data/
+
+# Compatibility Test Results
+test-results/
+junit.xml
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Go dependencies (optional but safe)
+vendor/
