@@ -226,7 +226,3 @@ AWS_ACCESS_KEY_ID=222222222222 aws sqs create-queue --queue-name orders
 ```
 
 Any other key format falls back to `CLOUDSTACK_DEFAULT_ACCOUNT_ID` (`000000000000`).
-
-## License
-
-MIT License.
