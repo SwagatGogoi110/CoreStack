@@ -97,6 +97,42 @@ graph TD
 
 ---
 
+## GCP Services
+
+| Service | Protocol | Storage | Status |
+| :--- | :--- | :--- | :--- |
+| **Artifact Registry** | REST-JSON | WAL | [x] Implemented |
+| **App Engine** | REST-JSON | WAL | [x] Implemented |
+| **BigQuery** | REST-JSON | WAL | [x] Implemented |
+| **Bigtable** | REST-JSON | WAL | [x] Implemented |
+| **Certificate Authority Service** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Armor** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Build** | REST-JSON | WAL | [x] Implemented |
+| **Cloud DNS** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Functions** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Logging** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Load Balancing** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Monitoring** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Run** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Scheduler** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Spanner** | REST-JSON | WAL | [x] Implemented |
+| **Cloud SQL** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Tasks** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Trace** | REST-JSON | WAL | [x] Implemented |
+| **Cloud Workflows** | REST-JSON | WAL | [x] Implemented |
+| **Compute Engine** | REST-JSON | WAL | [x] Implemented |
+| **Datastore** | REST-JSON | WAL | [x] Implemented |
+| **Firestore** | REST-JSON | WAL | [x] Implemented |
+| **GCS** | REST-JSON | WAL | [x] Implemented |
+| **GKE** | REST-JSON | WAL | [x] Implemented |
+| **IAM** | REST-JSON | WAL | [x] Implemented |
+| **Kafka** | REST-JSON | WAL | [x] Implemented |
+| **Operations** | REST-JSON | WAL | [x] Implemented |
+| **PubSub** | REST-JSON | WAL | [x] Implemented |
+| **Secret Manager** | REST-JSON | WAL | [x] Implemented |
+
+---
+
 ## Detailed Service Workings
 
 ### Compute Services (Lambda, EC2, ECS, EKS)

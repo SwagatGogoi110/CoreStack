@@ -7,74 +7,105 @@ import (
 	"time"
 
 	"github.com/hectorvent/cloudstack/internal/core/common"
-	"github.com/hectorvent/cloudstack/internal/services/acm"
-	"github.com/hectorvent/cloudstack/internal/services/apigateway"
-	"github.com/hectorvent/cloudstack/internal/services/apigatewayv2"
-	"github.com/hectorvent/cloudstack/internal/services/appconfig"
-	"github.com/hectorvent/cloudstack/internal/services/appsync"
-	"github.com/hectorvent/cloudstack/internal/services/athena"
-	"github.com/hectorvent/cloudstack/internal/services/autoscaling"
-	"github.com/hectorvent/cloudstack/internal/services/backup"
-	"github.com/hectorvent/cloudstack/internal/services/bcmdataexports"
-	"github.com/hectorvent/cloudstack/internal/services/bedrockruntime"
-	"github.com/hectorvent/cloudstack/internal/services/ce"
-	"github.com/hectorvent/cloudstack/internal/services/cloudformation"
-	"github.com/hectorvent/cloudstack/internal/services/cloudfront"
-	"github.com/hectorvent/cloudstack/internal/services/cloudwatch"
-	"github.com/hectorvent/cloudstack/internal/services/codebuild"
-	"github.com/hectorvent/cloudstack/internal/services/codedeploy"
-	"github.com/hectorvent/cloudstack/internal/services/configservice"
-	"github.com/hectorvent/cloudstack/internal/services/cognito"
-	"github.com/hectorvent/cloudstack/internal/services/cur"
-	"github.com/hectorvent/cloudstack/internal/services/dynamodb"
-	"github.com/hectorvent/cloudstack/internal/services/ec2"
-	"github.com/hectorvent/cloudstack/internal/services/ecr"
-	"github.com/hectorvent/cloudstack/internal/services/ecs"
-	"github.com/hectorvent/cloudstack/internal/services/eks"
-	"github.com/hectorvent/cloudstack/internal/services/elasticache"
-	"github.com/hectorvent/cloudstack/internal/services/elbv2"
-	"github.com/hectorvent/cloudstack/internal/services/eventbridge"
-	"github.com/hectorvent/cloudstack/internal/services/firehose"
-	"github.com/hectorvent/cloudstack/internal/services/cloudstack"
-	"github.com/hectorvent/cloudstack/internal/services/glue"
-	"github.com/hectorvent/cloudstack/internal/services/iam"
-	"github.com/hectorvent/cloudstack/internal/services/kinesis"
-	"github.com/hectorvent/cloudstack/internal/services/kms"
-	"github.com/hectorvent/cloudstack/internal/services/lambda"
-	"github.com/hectorvent/cloudstack/internal/services/msk"
-	"github.com/hectorvent/cloudstack/internal/services/neptune"
-	"github.com/hectorvent/cloudstack/internal/services/opensearch"
-	"github.com/hectorvent/cloudstack/internal/services/pipes"
-	"github.com/hectorvent/cloudstack/internal/services/pricing"
-	"github.com/hectorvent/cloudstack/internal/services/rds"
-	"github.com/hectorvent/cloudstack/internal/services/resourcegroupstagging"
-	"github.com/hectorvent/cloudstack/internal/services/route53"
-	"github.com/hectorvent/cloudstack/internal/services/s3"
-	"github.com/hectorvent/cloudstack/internal/services/scheduler"
-	"github.com/hectorvent/cloudstack/internal/services/secretsmanager"
-	"github.com/hectorvent/cloudstack/internal/services/ses"
-	"github.com/hectorvent/cloudstack/internal/services/sns"
-	"github.com/hectorvent/cloudstack/internal/services/sqs"
-	"github.com/hectorvent/cloudstack/internal/services/ssm"
-	"github.com/hectorvent/cloudstack/internal/services/stepfunctions"
-	"github.com/hectorvent/cloudstack/internal/services/sts"
-	"github.com/hectorvent/cloudstack/internal/services/textract"
-	"github.com/hectorvent/cloudstack/internal/services/transcribe"
-	"github.com/hectorvent/cloudstack/internal/services/transfer"
-	"github.com/hectorvent/cloudstack/internal/services/redshift"
-	"github.com/hectorvent/cloudstack/internal/services/emr"
-	"github.com/hectorvent/cloudstack/internal/services/mq"
-	"github.com/hectorvent/cloudstack/internal/services/docdb"
-	"github.com/hectorvent/cloudstack/internal/services/cloudtrail"
-	"github.com/hectorvent/cloudstack/internal/services/codecommit"
-	"github.com/hectorvent/cloudstack/internal/services/codepipeline"
-	"github.com/hectorvent/cloudstack/internal/services/xray"
-	"github.com/hectorvent/cloudstack/internal/services/waf"
-	"github.com/hectorvent/cloudstack/internal/services/organizations"
-	"github.com/hectorvent/cloudstack/internal/services/synthetics"
-	"github.com/hectorvent/cloudstack/internal/services/sagemaker"
-	"github.com/hectorvent/cloudstack/internal/services/apprunner"
+	"github.com/hectorvent/cloudstack/internal/services/aws/acm"
+	"github.com/hectorvent/cloudstack/internal/services/aws/apigateway"
+	"github.com/hectorvent/cloudstack/internal/services/aws/apigatewayv2"
+	"github.com/hectorvent/cloudstack/internal/services/aws/appconfig"
+	"github.com/hectorvent/cloudstack/internal/services/aws/appsync"
+	"github.com/hectorvent/cloudstack/internal/services/aws/athena"
+	"github.com/hectorvent/cloudstack/internal/services/aws/autoscaling"
+	"github.com/hectorvent/cloudstack/internal/services/aws/backup"
+	"github.com/hectorvent/cloudstack/internal/services/aws/bcmdataexports"
+	"github.com/hectorvent/cloudstack/internal/services/aws/bedrockruntime"
+	"github.com/hectorvent/cloudstack/internal/services/aws/ce"
+	"github.com/hectorvent/cloudstack/internal/services/aws/cloudformation"
+	"github.com/hectorvent/cloudstack/internal/services/aws/cloudfront"
+	"github.com/hectorvent/cloudstack/internal/services/aws/cloudtrail"
+	"github.com/hectorvent/cloudstack/internal/services/aws/cloudwatch"
+	"github.com/hectorvent/cloudstack/internal/services/aws/codebuild"
+	"github.com/hectorvent/cloudstack/internal/services/aws/codecommit"
+	"github.com/hectorvent/cloudstack/internal/services/aws/codedeploy"
+	"github.com/hectorvent/cloudstack/internal/services/aws/codepipeline"
+	"github.com/hectorvent/cloudstack/internal/services/aws/cognito"
+	"github.com/hectorvent/cloudstack/internal/services/aws/configservice"
+	"github.com/hectorvent/cloudstack/internal/services/aws/cur"
+	"github.com/hectorvent/cloudstack/internal/services/aws/docdb"
+	"github.com/hectorvent/cloudstack/internal/services/aws/dynamodb"
+	"github.com/hectorvent/cloudstack/internal/services/aws/ec2"
+	"github.com/hectorvent/cloudstack/internal/services/aws/ecr"
+	"github.com/hectorvent/cloudstack/internal/services/aws/ecs"
+	"github.com/hectorvent/cloudstack/internal/services/aws/eks"
+	"github.com/hectorvent/cloudstack/internal/services/aws/elasticache"
+	"github.com/hectorvent/cloudstack/internal/services/aws/elbv2"
+	"github.com/hectorvent/cloudstack/internal/services/aws/emr"
+	"github.com/hectorvent/cloudstack/internal/services/aws/eventbridge"
+	"github.com/hectorvent/cloudstack/internal/services/aws/firehose"
+	"github.com/hectorvent/cloudstack/internal/services/aws/glue"
+	"github.com/hectorvent/cloudstack/internal/services/aws/iam"
+	"github.com/hectorvent/cloudstack/internal/services/aws/kinesis"
+	"github.com/hectorvent/cloudstack/internal/services/aws/kms"
+	"github.com/hectorvent/cloudstack/internal/services/aws/lambda"
+	"github.com/hectorvent/cloudstack/internal/services/aws/mq"
+	"github.com/hectorvent/cloudstack/internal/services/aws/msk"
+	"github.com/hectorvent/cloudstack/internal/services/aws/neptune"
+	"github.com/hectorvent/cloudstack/internal/services/aws/opensearch"
+	"github.com/hectorvent/cloudstack/internal/services/aws/organizations"
+	"github.com/hectorvent/cloudstack/internal/services/aws/pipes"
+	"github.com/hectorvent/cloudstack/internal/services/aws/pricing"
+	"github.com/hectorvent/cloudstack/internal/services/aws/rds"
+	"github.com/hectorvent/cloudstack/internal/services/aws/redshift"
+	"github.com/hectorvent/cloudstack/internal/services/aws/resourcegroupstagging"
+	"github.com/hectorvent/cloudstack/internal/services/aws/route53"
+	"github.com/hectorvent/cloudstack/internal/services/aws/s3"
+	"github.com/hectorvent/cloudstack/internal/services/aws/sagemaker"
+	"github.com/hectorvent/cloudstack/internal/services/aws/scheduler"
+	"github.com/hectorvent/cloudstack/internal/services/aws/secretsmanager"
+	"github.com/hectorvent/cloudstack/internal/services/aws/ses"
+	"github.com/hectorvent/cloudstack/internal/services/aws/sns"
+	"github.com/hectorvent/cloudstack/internal/services/aws/sqs"
+	"github.com/hectorvent/cloudstack/internal/services/aws/ssm"
+	"github.com/hectorvent/cloudstack/internal/services/aws/stepfunctions"
+	"github.com/hectorvent/cloudstack/internal/services/aws/sts"
+	"github.com/hectorvent/cloudstack/internal/services/aws/synthetics"
+	"github.com/hectorvent/cloudstack/internal/services/aws/textract"
+	"github.com/hectorvent/cloudstack/internal/services/aws/transcribe"
+	"github.com/hectorvent/cloudstack/internal/services/aws/transfer"
+	"github.com/hectorvent/cloudstack/internal/services/aws/waf"
+	"github.com/hectorvent/cloudstack/internal/services/aws/xray"
+	"github.com/hectorvent/cloudstack/internal/services/aws/apprunner"
+	"github.com/hectorvent/cloudstack/internal/services/aws/cloudstack"
 	"github.com/hectorvent/cloudstack/internal/storage"
+
+	// GCP Services
+	gcp_cf "github.com/hectorvent/cloudstack/internal/services/gcp/cloudfunctions"
+	gcp_cr "github.com/hectorvent/cloudstack/internal/services/gcp/cloudrun"
+	gcp_ds "github.com/hectorvent/cloudstack/internal/services/gcp/datastore"
+	gcp_fs "github.com/hectorvent/cloudstack/internal/services/gcp/firestore"
+	gcp_gcs "github.com/hectorvent/cloudstack/internal/services/gcp/gcs"
+	gcp_iam "github.com/hectorvent/cloudstack/internal/services/gcp/iam"
+	gcp_kafka "github.com/hectorvent/cloudstack/internal/services/gcp/kafka"
+	gcp_ops "github.com/hectorvent/cloudstack/internal/services/gcp/operations"
+	gcp_pubsub "github.com/hectorvent/cloudstack/internal/services/gcp/pubsub"
+	gcp_sm "github.com/hectorvent/cloudstack/internal/services/gcp/secretmanager"
+	gcp_tasks "github.com/hectorvent/cloudstack/internal/services/gcp/tasks"
+	gcp_bq "github.com/hectorvent/cloudstack/internal/services/gcp/bigquery"
+	gcp_sql "github.com/hectorvent/cloudstack/internal/services/gcp/cloudsql"
+	gcp_spanner "github.com/hectorvent/cloudstack/internal/services/gcp/spanner"
+	gcp_bt "github.com/hectorvent/cloudstack/internal/services/gcp/bigtable"
+	gcp_ar "github.com/hectorvent/cloudstack/internal/services/gcp/artifactregistry"
+	gcp_ce "github.com/hectorvent/cloudstack/internal/services/gcp/compute"
+	gcp_gke "github.com/hectorvent/cloudstack/internal/services/gcp/container"
+	gcp_cb "github.com/hectorvent/cloudstack/internal/services/gcp/cloudbuild"
+	gcp_ae "github.com/hectorvent/cloudstack/internal/services/gcp/appengine"
+	gcp_wf "github.com/hectorvent/cloudstack/internal/services/gcp/workflows"
+	gcp_cs "github.com/hectorvent/cloudstack/internal/services/gcp/cloudscheduler"
+	gcp_dns "github.com/hectorvent/cloudstack/internal/services/gcp/dns"
+	gcp_armor "github.com/hectorvent/cloudstack/internal/services/gcp/armor"
+	gcp_lb "github.com/hectorvent/cloudstack/internal/services/gcp/loadbalancing"
+	gcp_cas "github.com/hectorvent/cloudstack/internal/services/gcp/privateca"
+	gcp_logging "github.com/hectorvent/cloudstack/internal/services/gcp/logging"
+	gcp_monitoring "github.com/hectorvent/cloudstack/internal/services/gcp/monitoring"
+	gcp_trace "github.com/hectorvent/cloudstack/internal/services/gcp/trace"
 )
 
 // Server represents the core CloudStack HTTP server, routing to various AWS services.
@@ -93,6 +124,7 @@ type Server struct {
 	route53        *route53.Route53Handler
 	mq             *mq.MqHandler
 	duck           *cloudstack.DuckManager
+	gcpHandlers    map[string]http.Handler
 }
 
 // NewServer initializes and returns a new Server instance.
@@ -103,12 +135,13 @@ func NewServer() *Server {
 	duckManager := cloudstack.NewDuckManager()
 
 	s := &Server{
-		mux:      mux,
-		resolver: NewResolver("", ""), // TODO: Load from config
-		catalog:  initCatalog(),
-		handlers: make(map[string]common.ServiceHandler),
-		storage:  storageFactory,
-		duck:     duckManager,
+		mux:         mux,
+		resolver:    NewResolver("", ""), // TODO: Load from config
+		catalog:     initCatalog(),
+		handlers:    make(map[string]common.ServiceHandler),
+		gcpHandlers: make(map[string]http.Handler),
+		storage:     storageFactory,
+		duck:        duckManager,
 	}
 
 
@@ -503,6 +536,66 @@ func NewServer() *Server {
 
 	apprunnerService, _ := apprunner.NewApprunnerService(storageFactory)
 	s.handlers["apprunner"] = apprunner.NewApprunnerJsonHandler(apprunnerService)
+
+	// Initialize GCP Services
+	cfSvc, _ := gcp_cf.NewCloudFunctionsService(storageFactory)
+	s.gcpHandlers["cloudfunctions"] = gcp_cf.NewCloudFunctionsHandler(cfSvc)
+	crSvc, _ := gcp_cr.NewCloudRunService(storageFactory)
+	s.gcpHandlers["cloudrun"] = gcp_cr.NewCloudRunHandler(crSvc)
+	dsSvc, _ := gcp_ds.NewDatastoreService(storageFactory)
+	s.gcpHandlers["datastore"] = gcp_ds.NewDatastoreHandler(dsSvc)
+	fsSvc, _ := gcp_fs.NewFirestoreService(storageFactory)
+	s.gcpHandlers["firestore"] = gcp_fs.NewFirestoreHandler(fsSvc)
+	gcsSvc, _ := gcp_gcs.NewGcsService(storageFactory)
+	s.gcpHandlers["gcs"] = gcp_gcs.NewGcsHandler(gcsSvc)
+	iamGcpSvc, _ := gcp_iam.NewIamGcpService(storageFactory)
+	s.gcpHandlers["iam"] = gcp_iam.NewIamGcpHandler(iamGcpSvc)
+	kafkaSvc, _ := gcp_kafka.NewKafkaService(storageFactory)
+	s.gcpHandlers["kafka"] = gcp_kafka.NewKafkaHandler(kafkaSvc)
+	opsSvc, _ := gcp_ops.NewOperationsService(storageFactory)
+	s.gcpHandlers["operations"] = gcp_ops.NewOperationsHandler(opsSvc)
+	pubsubSvc, _ := gcp_pubsub.NewPubSubService(storageFactory)
+	s.gcpHandlers["pubsub"] = gcp_pubsub.NewPubSubHandler(pubsubSvc)
+	smGcpSvc, _ := gcp_sm.NewSecretManagerGcpService(storageFactory)
+	s.gcpHandlers["secretmanager"] = gcp_sm.NewSecretManagerGcpHandler(smGcpSvc)
+	tasksSvc, _ := gcp_tasks.NewTasksService(storageFactory)
+	s.gcpHandlers["tasks"] = gcp_tasks.NewTasksHandler(tasksSvc)
+	bqSvc, _ := gcp_bq.NewBigQueryService(storageFactory, duckManager)
+	s.gcpHandlers["bigquery"] = gcp_bq.NewBigQueryHandler(bqSvc)
+	sqlSvc, _ := gcp_sql.NewCloudSqlService(storageFactory)
+	s.gcpHandlers["cloudsql"] = gcp_sql.NewCloudSqlHandler(sqlSvc)
+	spannerSvc, _ := gcp_spanner.NewSpannerService(storageFactory)
+	s.gcpHandlers["spanner"] = gcp_spanner.NewSpannerHandler(spannerSvc)
+	btSvc, _ := gcp_bt.NewBigtableService(storageFactory)
+	s.gcpHandlers["bigtable"] = gcp_bt.NewBigtableHandler(btSvc)
+	arSvc, _ := gcp_ar.NewArtifactRegistryService(storageFactory)
+	s.gcpHandlers["artifactregistry"] = gcp_ar.NewArtifactRegistryHandler(arSvc)
+	ceSvc, _ := gcp_ce.NewComputeEngineService(storageFactory)
+	s.gcpHandlers["compute"] = gcp_ce.NewComputeEngineHandler(ceSvc)
+	gkeSvc, _ := gcp_gke.NewGkeService(storageFactory)
+	s.gcpHandlers["gke"] = gcp_gke.NewGkeHandler(gkeSvc)
+	cbSvc, _ := gcp_cb.NewCloudBuildService(storageFactory)
+	s.gcpHandlers["cloudbuild"] = gcp_cb.NewCloudBuildHandler(cbSvc)
+	aeSvc, _ := gcp_ae.NewAppEngineService(storageFactory)
+	s.gcpHandlers["appengine"] = gcp_ae.NewAppEngineHandler(aeSvc)
+	wfSvc, _ := gcp_wf.NewWorkflowsService(storageFactory)
+	s.gcpHandlers["workflows"] = gcp_wf.NewWorkflowsHandler(wfSvc)
+	csSvc, _ := gcp_cs.NewCloudSchedulerService(storageFactory)
+	s.gcpHandlers["cloudscheduler"] = gcp_cs.NewCloudSchedulerHandler(csSvc)
+	dnsSvc, _ := gcp_dns.NewCloudDnsService(storageFactory)
+	s.gcpHandlers["dns"] = gcp_dns.NewCloudDnsHandler(dnsSvc)
+	armorSvc, _ := gcp_armor.NewCloudArmorService(storageFactory)
+	s.gcpHandlers["armor"] = gcp_armor.NewCloudArmorHandler(armorSvc)
+	lbSvc, _ := gcp_lb.NewLoadBalancingService(storageFactory)
+	s.gcpHandlers["loadbalancing"] = gcp_lb.NewLoadBalancingHandler(lbSvc)
+	casSvc, _ := gcp_cas.NewCasService(storageFactory)
+	s.gcpHandlers["cas"] = gcp_cas.NewCasHandler(casSvc)
+	loggingSvc, _ := gcp_logging.NewCloudLoggingService(storageFactory)
+	s.gcpHandlers["logging"] = gcp_logging.NewCloudLoggingHandler(loggingSvc)
+	monitoringSvc, _ := gcp_monitoring.NewCloudMonitoringService(storageFactory)
+	s.gcpHandlers["monitoring"] = gcp_monitoring.NewCloudMonitoringHandler(monitoringSvc)
+	traceSvc, _ := gcp_trace.NewCloudTraceService(storageFactory)
+	s.gcpHandlers["trace"] = gcp_trace.NewCloudTraceHandler(traceSvc)
 
 	// Register basic routes
 	s.registerRoutes()

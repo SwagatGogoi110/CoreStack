@@ -15,6 +15,12 @@ import (
 var servicePattern = regexp.MustCompile(`Credential=\S+/\d{8}/[^/]+/([^/]+)/`)
 
 func (s *Server) handleAWSRequest(w http.ResponseWriter, r *http.Request) {
+	// First, check if this is a GCP request
+	if s.isGcpRequest(r) {
+		s.handleGCPRequest(w, r)
+		return
+	}
+
 	contentType := r.Header.Get("Content-Type")
 
 	// 1. Check for Lambda REST API
@@ -161,11 +167,6 @@ func (s *Server) handleQueryRequest(w http.ResponseWriter, r *http.Request) {
 	rc := common.FromContext(r.Context())
 	response, err := handler.HandleQuery(action, r.Form, rc)
 	if err != nil {
-		// Distinguish between service not supporting action and internal failure
-		if strings.Contains(err.Error(), "Unknown") && strings.Contains(err.Error(), "action") {
-			// If we matched multiple services, try the next one? 
-			// For now, we've already resolved the service.
-		}
 		s.writeXmlError(w, "InternalFailure", err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -184,9 +185,6 @@ func (s *Server) resolveQueryService(auth, action string) string {
 				return descriptors[0].ExternalKey
 			}
 			if len(descriptors) > 1 {
-				// Ambiguous scope (e.g. "rds" for RDS and DocDB)
-				// Heuristic: check if action starts with service prefix if defined,
-				// or use a hardcoded mapping for known collisions.
 				for _, d := range descriptors {
 					for _, prefix := range d.TargetPrefixes {
 						cleanPrefix := strings.TrimSuffix(prefix, ".")
@@ -195,20 +193,17 @@ func (s *Server) resolveQueryService(auth, action string) string {
 						}
 					}
 				}
-				// Special cases for collisions without prefixes in catalog
 				if scope == "rds" {
 					if strings.Contains(action, "DBCluster") {
 						return "docdb"
 					}
 					return "rds"
 				}
-				return descriptors[0].ExternalKey // Fallback to first
+				return descriptors[0].ExternalKey
 			}
 		}
 	}
-
-	// Fallback to infer from action if needed
-	return "sqs" // Default fallback for now
+	return "sqs"
 }
 
 func (s *Server) writeXmlError(w http.ResponseWriter, code, message string, status int) {
@@ -287,4 +282,118 @@ func (s *Server) handleGenericREST(w http.ResponseWriter, r *http.Request, servi
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+// -- GCP Routing --
+
+func (s *Server) isGcpRequest(r *http.Request) bool {
+	if r.Header.Get("X-Goog-Api-Client") != "" {
+		return true
+	}
+	if strings.HasPrefix(r.Header.Get("Authorization"), "Bearer ") && !strings.Contains(r.Header.Get("Authorization"), "AWS") {
+		return true
+	}
+	path := r.URL.Path
+	if strings.HasPrefix(path, "/v1/projects") || strings.HasPrefix(path, "/v2/projects") || 
+	   strings.HasPrefix(path, "/v3/projects") ||
+	   strings.HasPrefix(path, "/v1/locations") || strings.HasPrefix(path, "/v2/locations") ||
+	   strings.HasPrefix(path, "/bigquery/v2/") || strings.HasPrefix(path, "/sql/v1/") ||
+	   strings.HasPrefix(path, "/dns/v1/") || strings.HasPrefix(path, "/compute/v1/") ||
+	   strings.HasPrefix(path, "/v1/apps/") || strings.HasPrefix(path, "/v2/entries") {
+		return true
+	}
+	if strings.HasPrefix(path, "/storage/v1") || strings.HasPrefix(path, "/upload/storage") {
+		return true
+	}
+	if strings.Contains(r.Host, "run.googleapis.com") {
+		return true
+	}
+	return false
+}
+
+func (s *Server) handleGCPRequest(w http.ResponseWriter, r *http.Request) {
+	path := r.URL.Path
+	var handler http.Handler
+
+	if strings.HasPrefix(path, "/sql/v1/projects") {
+		handler = s.gcpHandlers["cloudsql"]
+	} else if strings.HasPrefix(path, "/dns/v1/projects") {
+		handler = s.gcpHandlers["dns"]
+	} else if strings.HasPrefix(path, "/v1/apps/") {
+		handler = s.gcpHandlers["appengine"]
+	} else if strings.HasPrefix(path, "/v2/entries") {
+		handler = s.gcpHandlers["logging"]
+	} else if strings.HasPrefix(path, "/compute/v1/projects") {
+		if strings.Contains(path, "/securityPolicies") {
+			handler = s.gcpHandlers["armor"]
+		} else if strings.Contains(path, "/forwardingRules") || strings.Contains(path, "/targetHttpProxies") || strings.Contains(path, "/urlMaps") || strings.Contains(path, "/backendServices") {
+			handler = s.gcpHandlers["loadbalancing"]
+		} else {
+			handler = s.gcpHandlers["compute"]
+		}
+	} else if strings.HasPrefix(path, "/v1/projects") || strings.HasPrefix(path, "/v2/projects") || strings.HasPrefix(path, "/v3/projects") {
+		if strings.Contains(path, "/topics") || strings.Contains(path, "/subscriptions") {
+			handler = s.gcpHandlers["pubsub"]
+		} else if strings.Contains(path, "/secrets") {
+			handler = s.gcpHandlers["secretmanager"]
+		} else if strings.Contains(path, "/databases") {
+			handler = s.gcpHandlers["firestore"]
+		} else if strings.Contains(path, "/caPools") {
+			handler = s.gcpHandlers["cas"]
+		} else if strings.Contains(path, "/repositories") {
+			handler = s.gcpHandlers["artifactregistry"]
+		} else if strings.Contains(path, "/logs") || strings.Contains(path, "/entries") {
+			handler = s.gcpHandlers["logging"]
+		} else if strings.Contains(path, "/timeSeries") {
+			handler = s.gcpHandlers["monitoring"]
+		} else if strings.Contains(path, "/traces") {
+			handler = s.gcpHandlers["trace"]
+		} else if strings.Contains(path, "/instances") {
+			if strings.HasPrefix(path, "/v2") {
+				handler = s.gcpHandlers["bigtable"]
+			} else {
+				handler = s.gcpHandlers["spanner"]
+			}
+		} else if strings.Contains(path, "/serviceAccounts") {
+			handler = s.gcpHandlers["iam"]
+		} else if strings.Contains(path, "/operations") {
+			handler = s.gcpHandlers["operations"]
+		} else if strings.Contains(path, "/queues") {
+			handler = s.gcpHandlers["tasks"]
+		} else if strings.Contains(path, "/builds") || strings.Contains(path, "/triggers") {
+			handler = s.gcpHandlers["cloudbuild"]
+		} else if strings.Contains(path, "/workflows") {
+			handler = s.gcpHandlers["workflows"]
+		} else if strings.Contains(path, "/jobs") {
+			handler = s.gcpHandlers["cloudscheduler"]
+		} else if strings.Contains(path, "/functions") {
+			handler = s.gcpHandlers["cloudfunctions"]
+		} else if strings.Contains(path, "/services") {
+			handler = s.gcpHandlers["cloudrun"]
+		} else if strings.Contains(path, "/clusters") {
+			if strings.Contains(path, "/locations/") {
+				handler = s.gcpHandlers["gke"]
+			} else {
+				handler = s.gcpHandlers["kafka"]
+			}
+		} else if strings.Contains(path, "/bigquery/v2/") {
+			handler = s.gcpHandlers["bigquery"]
+		} else if strings.Contains(path, ":commit") || strings.Contains(path, ":lookup") || strings.Contains(path, ":runQuery") {
+			handler = s.gcpHandlers["datastore"]
+		}
+	} else if strings.HasPrefix(path, "/bigquery/v2") {
+		handler = s.gcpHandlers["bigquery"]
+	} else if strings.HasPrefix(path, "/compute/v1") {
+		handler = s.gcpHandlers["compute"]
+	} else if strings.HasPrefix(path, "/storage/v1") || strings.HasPrefix(path, "/upload/storage") {
+		handler = s.gcpHandlers["gcs"]
+	}
+
+	if handler != nil {
+		handler.ServeHTTP(w, r)
+		return
+	}
+
+	w.WriteHeader(http.StatusNotImplemented)
+	fmt.Fprintf(w, `{"error": {"code": 501, "message": "GCP service not implemented for path %s"}}`, path)
 }

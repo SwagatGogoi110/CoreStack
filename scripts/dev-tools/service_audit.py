@@ -2,7 +2,7 @@ import os
 import re
 
 def audit_services():
-    services_path = "internal/services/"
+    services_path = "internal/services/aws/"
     services = sorted([d for d in os.listdir(services_path) if os.path.isdir(os.path.join(services_path, d))])
     
     print(f"{'Service':<25} | {'Status':<15} | {'Implemented Actions'}")

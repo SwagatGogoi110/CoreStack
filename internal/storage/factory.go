@@ -23,6 +23,10 @@ func NewFactory(persistentPath, defaultAccountID string, compactionInterval time
 	}
 }
 
+func (f *Factory) Root() string {
+	return f.persistentPath
+}
+
 func CreateAccountAware[V any](f *Factory, serviceName, fileName, mode string) (Backend[string, V], error) {
 	var inner Backend[string, V]
 	var err error
