@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -113,4 +114,15 @@ func (s *SqsService) GetQueueUrl(ctx context.Context, name string) (string, erro
 		return "", fmt.Errorf("AWS.SimpleQueueService.NonExistentQueue: The specified queue does not exist")
 	}
 	return q.QueueURL, nil
+}
+
+func (s *SqsService) ListQueues(ctx context.Context, prefix string) ([]string, error) {
+	queues, _ := s.queueStore.Scan(ctx, func(k string) bool {
+		return strings.HasPrefix(k, prefix)
+	})
+	urls := make([]string, 0, len(queues))
+	for _, q := range queues {
+		urls = append(urls, q.QueueURL)
+	}
+	return urls, nil
 }

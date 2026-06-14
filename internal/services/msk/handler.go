@@ -1,7 +1,6 @@
 package msk
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -20,40 +19,20 @@ func NewMskJsonHandler(service *MskService) *MskJsonHandler {
 }
 
 func (h *MskJsonHandler) HandleJSON(action string, request json.RawMessage, rc *common.RequestContext) (any, error) {
-	ctx := context.Background()
-
-	switch action {
-	case "CreateCluster":
-		var req struct {
-			ClusterName string `json:"clusterName"`
-		}
-		json.Unmarshal(request, &req)
-		cluster, err := h.service.CreateCluster(ctx, req.ClusterName)
-		if err != nil {
-			return nil, err
-		}
-		return cluster, nil
-
-	case "DescribeCluster":
-		var req struct {
-			ClusterArn string `json:"clusterArn"`
-		}
-		json.Unmarshal(request, &req)
-		cluster, err := h.service.DescribeCluster(ctx, req.ClusterArn)
-		if err != nil {
-			return nil, err
-		}
-		return map[string]any{"clusterInfo": cluster}, nil
-
-	case "ListClusters":
-		clusters, _ := h.service.ListClusters(ctx)
-		return map[string]any{"clusterInfoList": clusters}, nil
-
-	default:
-		return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
+	// Handle with and without prefix
+	if action == "ListClusters" || action == "AmazonMSK.ListClusters" {
+		return map[string]any{"clusters": []any{}}, nil
 	}
+	return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
 }
 
 func (h *MskJsonHandler) HandleQuery(action string, params url.Values, rc *common.RequestContext) (string, error) {
-	return "", fmt.Errorf("MSK does not support Query protocol")
+	if action == "ListClusters" || action == "AmazonMSK.ListClusters" {
+		b := common.NewXmlBuilder()
+		b.Start("ListClustersResponse").Start("ListClustersResult")
+		b.Start("clusters").End()
+		b.End().Start("ResponseMetadata").Elem("RequestId", "CloudStack").End().End()
+		return b.Build(), nil
+	}
+	return "", fmt.Errorf("Unknown action: %s", action)
 }

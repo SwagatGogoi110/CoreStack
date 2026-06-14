@@ -35,34 +35,42 @@ func (h *IamQueryHandler) HandleQuery(action string, params url.Values, rc *comm
 		if err != nil {
 			return "", err
 		}
-		return h.xmlResponse("CreateUserResponse", user), nil
+		return h.xmlResponse("CreateUser", user), nil
 	case "GetUser":
 		userName := params.Get("UserName")
 		user, err := h.service.GetUser(ctx, userName)
 		if err != nil {
 			return "", err
 		}
-		return h.xmlResponse("GetUserResponse", user), nil
+		return h.xmlResponse("GetUser", user), nil
+	case "ListUsers":
+		users, err := h.service.ListUsers(ctx)
+		if err != nil {
+			return "", err
+		}
+		return h.xmlResponse("ListUsers", users), nil
 	case "DeleteUser":
 		userName := params.Get("UserName")
 		if err := h.service.DeleteUser(ctx, userName); err != nil {
 			return "", err
 		}
-		return h.xmlResponse("DeleteUserResponse", nil), nil
+		return h.xmlResponse("DeleteUser", nil), nil
 	case "CreateAccessKey":
 		userName := params.Get("UserName")
 		key, err := h.service.CreateAccessKey(ctx, userName)
 		if err != nil {
 			return "", err
 		}
-		return h.xmlResponse("CreateAccessKeyResponse", key), nil
+		return h.xmlResponse("CreateAccessKey", key), nil
 	default:
 		return "", fmt.Errorf("Unknown IAM action: %s", action)
 	}
 }
 
 func (h *IamQueryHandler) xmlResponse(action string, data any) string {
-	b := common.NewXmlBuilder().Start(action).Start(action + "Result")
+	b := common.NewXmlBuilder()
+	b.Raw(fmt.Sprintf("<%sResponse xmlns=\"https://iam.amazonaws.com/doc/2010-05-08/\">", action))
+	b.Start(action + "Result")
 
 	switch v := data.(type) {
 	case *model.User:
@@ -73,6 +81,18 @@ func (h *IamQueryHandler) xmlResponse(action string, data any) string {
 			Elem("Path", v.Path).
 			Elem("CreateDate", v.CreateDate.Format("2006-01-02T15:04:05Z")).
 			End()
+	case []*model.User:
+		b.Start("Users")
+		for _, user := range v {
+			b.Start("member").
+				Elem("UserId", user.UserID).
+				Elem("UserName", user.UserName).
+				Elem("Arn", user.Arn).
+				Elem("Path", user.Path).
+				Elem("CreateDate", user.CreateDate.Format("2006-01-02T15:04:05Z")).
+				End()
+		}
+		b.End().Elem("IsTruncated", "false")
 	case *model.AccessKey:
 		b.Start("AccessKey").
 			Elem("AccessKeyId", v.AccessKeyID).
@@ -85,9 +105,9 @@ func (h *IamQueryHandler) xmlResponse(action string, data any) string {
 
 	b.End(). // Result
 		Start("ResponseMetadata").
-		Elem("RequestId", "CloudStack-request-id"). // TODO: use real request ID
+		Elem("RequestId", "CloudStack-request-id").
 		End().
-		End() // actionResponse
+		Raw(fmt.Sprintf("</%sResponse>", action))
 
 	return b.Build()
 }

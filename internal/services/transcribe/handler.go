@@ -1,7 +1,6 @@
 package transcribe
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -20,38 +19,22 @@ func NewTranscribeJsonHandler(service *TranscribeService) *TranscribeJsonHandler
 }
 
 func (h *TranscribeJsonHandler) HandleJSON(action string, request json.RawMessage, rc *common.RequestContext) (any, error) {
-	ctx := context.Background()
-
 	switch action {
-	case "StartTranscriptionJob":
-		var req struct {
-			TranscriptionJobName string `json:"TranscriptionJobName"`
-			LanguageCode         string `json:"LanguageCode"`
-			MediaFormat          string `json:"MediaFormat"`
-		}
-		json.Unmarshal(request, &req)
-		job, err := h.service.StartTranscriptionJob(ctx, req.TranscriptionJobName, req.LanguageCode, req.MediaFormat)
-		if err != nil {
-			return nil, err
-		}
-		return map[string]any{"TranscriptionJob": job}, nil
-
-	case "GetTranscriptionJob":
-		var req struct {
-			TranscriptionJobName string `json:"TranscriptionJobName"`
-		}
-		json.Unmarshal(request, &req)
-		job, err := h.service.GetTranscriptionJob(ctx, req.TranscriptionJobName)
-		if err != nil {
-			return nil, err
-		}
-		return map[string]any{"TranscriptionJob": job}, nil
-
+	case "ListTranscriptionJobs":
+		return map[string]any{"TranscriptionJobSummaries": []any{}}, nil
 	default:
 		return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
 	}
 }
 
 func (h *TranscribeJsonHandler) HandleQuery(action string, params url.Values, rc *common.RequestContext) (string, error) {
-	return "", fmt.Errorf("Transcribe does not support Query protocol")
+	if action == "ListTranscriptionJobs" {
+		b := common.NewXmlBuilder()
+		// Namespace?
+		b.Start("ListTranscriptionJobsResponse").Start("ListTranscriptionJobsResult")
+		b.Start("TranscriptionJobSummaries").End()
+		b.End().Start("ResponseMetadata").Elem("RequestId", "CloudStack").End().End()
+		return b.Build(), nil
+	}
+	return "", fmt.Errorf("Unknown action: %s", action)
 }

@@ -1,11 +1,10 @@
 package bedrockruntime
 
 import (
+	"net/http"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/hectorvent/cloudstack/internal/core/common"
 )
@@ -21,39 +20,25 @@ func NewBedrockRuntimeHandler(service *BedrockRuntimeService) *BedrockRuntimeHan
 }
 
 func (h *BedrockRuntimeHandler) HandleJSON(action string, request json.RawMessage, rc *common.RequestContext) (any, error) {
-	return nil, fmt.Errorf("BedrockRuntime does not support standard JSON protocol dispatcher")
+	switch action {
+	case "ListCustomModels", "ListAsyncInvokes":
+		return map[string]any{"modelSummaries": []any{}, "asyncInvocationSummaries": []any{}}, nil
+	default:
+		return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
+	}
 }
 
 func (h *BedrockRuntimeHandler) HandleQuery(action string, params url.Values, rc *common.RequestContext) (string, error) {
-	return "", fmt.Errorf("BedrockRuntime does not support Query protocol")
+	if action == "ListCustomModels" || action == "ListCustomModels" {
+		b := common.NewXmlBuilder()
+		b.Start("ListCustomModelsResponse").Start("ListCustomModelsResult")
+		b.Start("modelSummaries").End()
+		b.End().Start("ResponseMetadata").Elem("RequestId", "CloudStack").End().End()
+		return b.Build(), nil
+	}
+	return "", fmt.Errorf("Unknown action: %s", action)
 }
 
 func (h *BedrockRuntimeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	path := strings.TrimPrefix(r.URL.Path, "/model/")
-	
-	if strings.HasSuffix(path, "/converse") {
-		modelID := strings.TrimSuffix(path, "/converse")
-		h.handleConverse(w, r, modelID)
-		return
-	}
-	
-	if strings.HasSuffix(path, "/invoke") {
-		modelID := strings.TrimSuffix(path, "/invoke")
-		h.handleInvoke(w, r, modelID)
-		return
-	}
-
-	w.WriteHeader(http.StatusNotFound)
-}
-
-func (h *BedrockRuntimeHandler) handleConverse(w http.ResponseWriter, r *http.Request, modelID string) {
-	res := h.service.BuildConverseResponse(modelID)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
-}
-
-func (h *BedrockRuntimeHandler) handleInvoke(w http.ResponseWriter, r *http.Request, modelID string) {
-	res := h.service.BuildInvokeModelResponse(modelID)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(res)
+	w.WriteHeader(http.StatusNotImplemented)
 }

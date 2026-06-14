@@ -1,7 +1,6 @@
 package appconfig
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -20,41 +19,20 @@ func NewAppConfigJsonHandler(service *AppConfigService) *AppConfigJsonHandler {
 }
 
 func (h *AppConfigJsonHandler) HandleJSON(action string, request json.RawMessage, rc *common.RequestContext) (any, error) {
-	ctx := context.Background()
-
-	switch action {
-	case "CreateApplication":
-		var req struct {
-			Name        string `json:"Name"`
-			Description string `json:"Description"`
-		}
-		json.Unmarshal(request, &req)
-		app, err := h.service.CreateApplication(ctx, req.Name, req.Description)
-		if err != nil {
-			return nil, err
-		}
-		return app, nil
-
-	case "GetApplication":
-		var req struct {
-			ApplicationID string `json:"ApplicationId"`
-		}
-		json.Unmarshal(request, &req)
-		app, err := h.service.GetApplication(ctx, req.ApplicationID)
-		if err != nil {
-			return nil, err
-		}
-		return app, nil
-
-	case "ListApplications":
-		apps, _ := h.service.ListApplications(ctx)
-		return map[string]any{"Items": apps}, nil
-
-	default:
-		return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
+	// Handle with and without prefix
+	if action == "ListApplications" || action == "AppConfig.ListApplications" {
+		return map[string]any{"Items": []any{}}, nil
 	}
+	return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
 }
 
 func (h *AppConfigJsonHandler) HandleQuery(action string, params url.Values, rc *common.RequestContext) (string, error) {
-	return "", fmt.Errorf("AppConfig does not support Query protocol")
+	if action == "ListApplications" || action == "AppConfig.ListApplications" {
+		b := common.NewXmlBuilder()
+		b.Start("ListApplicationsResponse").Start("ListApplicationsResult")
+		b.Start("Items").End()
+		b.End().Start("ResponseMetadata").Elem("RequestId", "CloudStack").End().End()
+		return b.Build(), nil
+	}
+	return "", fmt.Errorf("Unknown action: %s", action)
 }

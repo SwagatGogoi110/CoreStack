@@ -86,6 +86,10 @@ func (s *IamService) GetUser(ctx context.Context, userName string) (*model.User,
 	return user, nil
 }
 
+func (s *IamService) ListUsers(ctx context.Context) ([]*model.User, error) {
+	return s.users.Scan(ctx, func(k string) bool { return true })
+}
+
 func (s *IamService) DeleteUser(ctx context.Context, userName string) error {
 	user, err := s.GetUser(ctx, userName)
 	if err != nil {

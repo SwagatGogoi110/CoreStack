@@ -48,6 +48,10 @@ func (h *DynamoDbHandler) HandleJSON(action string, request json.RawMessage, rc 
 		}
 		return map[string]any{"Table": table}, nil
 
+	case "ListTables":
+		tables, _ := h.service.ListTables(ctx)
+		return map[string]any{"TableNames": tables}, nil
+
 	case "PutItem":
 		var req struct {
 			TableName string          `json:"TableName"`

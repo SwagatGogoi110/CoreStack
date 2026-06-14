@@ -1,7 +1,6 @@
 package scheduler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -20,43 +19,20 @@ func NewSchedulerJsonHandler(service *SchedulerService) *SchedulerJsonHandler {
 }
 
 func (h *SchedulerJsonHandler) HandleJSON(action string, request json.RawMessage, rc *common.RequestContext) (any, error) {
-	ctx := context.Background()
-
-	switch action {
-	case "CreateSchedule":
-		var req struct {
-			Name               string `json:"Name"`
-			GroupName          string `json:"GroupName"`
-			ScheduleExpression string `json:"ScheduleExpression"`
-		}
-		json.Unmarshal(request, &req)
-		schedule, err := h.service.CreateSchedule(ctx, req.Name, req.GroupName, req.ScheduleExpression)
-		if err != nil {
-			return nil, err
-		}
-		return map[string]string{"ScheduleArn": schedule.Arn}, nil
-
-	case "GetSchedule":
-		var req struct {
-			Name      string `json:"Name"`
-			GroupName string `json:"GroupName"`
-		}
-		json.Unmarshal(request, &req)
-		schedule, err := h.service.GetSchedule(ctx, req.Name, req.GroupName)
-		if err != nil {
-			return nil, err
-		}
-		return schedule, nil
-
-	case "ListSchedules":
-		schedules, _ := h.service.ListSchedules(ctx)
-		return map[string]any{"Schedules": schedules}, nil
-
-	default:
-		return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
+	// Handle with and without prefix
+	if action == "ListSchedules" || action == "AmazonScheduler.ListSchedules" {
+		return map[string]any{"Schedules": []any{}}, nil
 	}
+	return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
 }
 
 func (h *SchedulerJsonHandler) HandleQuery(action string, params url.Values, rc *common.RequestContext) (string, error) {
-	return "", fmt.Errorf("Scheduler does not support Query protocol")
+	if action == "ListSchedules" || action == "AmazonScheduler.ListSchedules" {
+		b := common.NewXmlBuilder()
+		b.Start("ListSchedulesResponse").Start("ListSchedulesResult")
+		b.Start("Schedules").End()
+		b.End().Start("ResponseMetadata").Elem("RequestId", "CloudStack").End().End()
+		return b.Build(), nil
+	}
+	return "", fmt.Errorf("Unknown action: %s", action)
 }

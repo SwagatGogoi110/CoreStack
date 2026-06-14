@@ -73,6 +73,10 @@ func (s *DynamoDbService) DescribeTable(ctx context.Context, name string) (*mode
 	return table, nil
 }
 
+func (s *DynamoDbService) ListTables(ctx context.Context) ([]string, error) {
+	return s.tableStore.Keys(ctx)
+}
+
 func (s *DynamoDbService) PutItem(ctx context.Context, tableName string, item json.RawMessage) error {
 	table, err := s.DescribeTable(ctx, tableName)
 	if err != nil {

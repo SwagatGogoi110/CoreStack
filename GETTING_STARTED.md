@@ -1,80 +1,42 @@
 # Getting Started with CloudStack
 
-CloudStack is a lightweight, Go-native AWS emulator designed for local development and CI/CD.
+CloudStack is a lightweight, Go-native AWS emulator designed for local development and CI/CD. It supports over **65+ AWS services** out-of-the-box.
 
-## Prerequisites
-- **Go 1.24+** (for local builds)
-- **Docker** (for containerized execution)
+## 1. Installation
+Ensure you have all the necessary tools installed (Go, AWS CLI, Just, JQ).
 
-## 1. Building from Source
-To build the CloudStack binary locally:
+See the [Detailed Installation Guide](docs/INSTALLATION.md) for step-by-step instructions.
+
+## 2. Building and Running
 
 ```bash
-go mod tidy
+# Build
 go build -o cloudstack ./cmd/cloudstack
-```
 
-## 2. Running CloudStack
-
-### Local Binary
-```bash
+# Run
 ./cloudstack
 ```
 By default, it listens on port **4566**.
 
-### Using Docker
-```bash
-docker build -t cloudstack:latest .
-docker run -p 4566:4566 -v /var/run/docker.sock:/var/run/docker.sock cloudstack:latest
-```
-
-### Using Docker Compose
-Create a `docker-compose.yml`:
-```yaml
-services:
-  cloudstack:
-    image: cloudstack:latest
-    ports:
-      - "4566:4566"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./data:/app/data
-```
-Run with `docker compose up -d`.
-
 ## 3. Configuring your Environment
-Point your AWS CLI or SDK to the local endpoint:
+You must redirect your AWS tools to the local emulator:
 
 ```bash
+export AWS_ENDPOINT_URL=http://localhost:4566
 export AWS_ACCESS_KEY_ID=test
 export AWS_SECRET_ACCESS_KEY=test
 export AWS_DEFAULT_REGION=us-east-1
-export AWS_ENDPOINT_URL=http://localhost:4566
 ```
 
-## 4. Testing the Connection
-Verify that CloudStack is running:
+*Tip: Use the `./bin/awslocal` wrapper to automate this configuration.*
 
-```bash
-curl http://localhost:4566/_cloudstack/health
-```
-
+## 4. Verification
 Try creating an S3 bucket:
 ```bash
-aws s3 mb s3://test-bucket --endpoint-url http://localhost:4566
+./bin/awslocal s3 mb s3://test-bucket
 ```
 
-## 5. Directory Structure
-- `cmd/cloudstack`: Application entry point.
-- `internal/core`: Dispatcher, protocol handlers, and routing.
-- `internal/storage`: WAL and Memory storage backends.
-- `internal/services`: Implementations for 50+ AWS services.
-- `docs/`: Architectural details and service-specific guides.
+## 5. Testing
+We provide a comprehensive integration test suite for all 65+ services.
 
-## 6. Supported Services
-CloudStack currently emulates over 50 AWS services, including:
-- **Compute:** Lambda, EC2, ECS, EKS
-- **Storage:** S3, DynamoDB
-- **Messaging:** SQS, SNS, Kinesis, EventBridge
-- **Security:** IAM, STS, Cognito, KMS, Secrets Manager
-- **Analytics:** Athena, Glue, OpenSearch
+See the [Testing Guide](docs/TESTING_GUIDE.md) to learn how to run them.

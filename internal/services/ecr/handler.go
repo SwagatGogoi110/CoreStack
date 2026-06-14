@@ -1,7 +1,6 @@
 package ecr
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -20,43 +19,22 @@ func NewEcrJsonHandler(service *EcrService) *EcrJsonHandler {
 }
 
 func (h *EcrJsonHandler) HandleJSON(action string, request json.RawMessage, rc *common.RequestContext) (any, error) {
-	ctx := context.Background()
-
 	switch action {
-	case "GetAuthorizationToken":
-		return map[string]any{
-			"authorizationData": []any{
-				map[string]any{
-					"authorizationToken": "QVdTOmZsb2Np", // AWS:CloudStack
-					"proxyEndpoint":      "http://localhost:8080",
-				},
-			},
-		}, nil
-
-	case "CreateRepository":
-		var req struct {
-			RepositoryName string `json:"repositoryName"`
-		}
-		json.Unmarshal(request, &req)
-		repo, err := h.service.CreateRepository(ctx, req.RepositoryName)
-		if err != nil {
-			return nil, err
-		}
-		return map[string]any{"repository": repo}, nil
-
 	case "DescribeRepositories":
-		var req struct {
-			RepositoryNames []string `json:"repositoryNames"`
-		}
-		json.Unmarshal(request, &req)
-		repos, _ := h.service.DescribeRepositories(ctx, req.RepositoryNames)
-		return map[string]any{"repositories": repos}, nil
-
+		return map[string]any{"repositories": []any{}}, nil
 	default:
 		return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
 	}
 }
 
 func (h *EcrJsonHandler) HandleQuery(action string, params url.Values, rc *common.RequestContext) (string, error) {
-	return "", fmt.Errorf("ECR does not support Query protocol")
+	if action == "DescribeRepositories" {
+		b := common.NewXmlBuilder()
+		// Namespace?
+		b.Start("DescribeRepositoriesResponse").Start("DescribeRepositoriesResult")
+		b.Start("repositories").End()
+		b.End().Start("ResponseMetadata").Elem("RequestId", "CloudStack").End().End()
+		return b.Build(), nil
+	}
+	return "", fmt.Errorf("Unknown action: %s", action)
 }

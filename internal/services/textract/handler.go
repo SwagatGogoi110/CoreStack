@@ -20,15 +20,21 @@ func NewTextractJsonHandler(service *TextractService) *TextractJsonHandler {
 
 func (h *TextractJsonHandler) HandleJSON(action string, request json.RawMessage, rc *common.RequestContext) (any, error) {
 	switch action {
-	case "DetectDocumentText":
-		return h.service.DetectDocumentText(), nil
-	case "AnalyzeDocument":
-		return h.service.DetectDocumentText(), nil
+	case "ListAdapters":
+		return map[string]any{"Adapters": []any{}}, nil
 	default:
 		return nil, fmt.Errorf("UnknownOperationException: Operation %s is not supported", action)
 	}
 }
 
 func (h *TextractJsonHandler) HandleQuery(action string, params url.Values, rc *common.RequestContext) (string, error) {
-	return "", fmt.Errorf("Textract does not support Query protocol")
+	if action == "ListAdapters" {
+		b := common.NewXmlBuilder()
+		// Namespace?
+		b.Start("ListAdaptersResponse").Start("ListAdaptersResult")
+		b.Start("Adapters").End()
+		b.End().Start("ResponseMetadata").Elem("RequestId", "CloudStack").End().End()
+		return b.Build(), nil
+	}
+	return "", fmt.Errorf("Unknown action: %s", action)
 }

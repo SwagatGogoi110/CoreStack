@@ -1,13 +1,17 @@
 package common
 
+import (
+	"strings"
+)
+
 type ServiceProtocol string
 
 const (
 	ProtocolJSON     ServiceProtocol = "JSON"
 	ProtocolCBOR     ServiceProtocol = "CBOR"
 	ProtocolQUERY    ServiceProtocol = "QUERY"
-	ProtocolRESTJSON ServiceProtocol = "REST_JSON"
-	ProtocolRESTXML  ServiceProtocol = "REST_XML"
+	ProtocolRESTJSON ServiceProtocol = "REST-JSON"
+	ProtocolRESTXML  ServiceProtocol = "REST-XML"
 )
 
 type ServiceDescriptor struct {
@@ -28,7 +32,7 @@ type TargetMatch struct {
 type Catalog struct {
 	descriptors         []*ServiceDescriptor
 	targetPrefixes      []targetPrefixEntry
-	byCredentialScope   map[string]*ServiceDescriptor
+	byCredentialScope   map[string][]*ServiceDescriptor
 }
 
 type targetPrefixEntry struct {
@@ -38,7 +42,7 @@ type targetPrefixEntry struct {
 
 func NewCatalog(descriptors []*ServiceDescriptor) *Catalog {
 	var targetPrefixes []targetPrefixEntry
-	byCredentialScope := make(map[string]*ServiceDescriptor)
+	byCredentialScope := make(map[string][]*ServiceDescriptor)
 	
 	for _, d := range descriptors {
 		for _, prefix := range d.TargetPrefixes {
@@ -48,7 +52,7 @@ func NewCatalog(descriptors []*ServiceDescriptor) *Catalog {
 			})
 		}
 		for _, scope := range d.CredentialScopes {
-			byCredentialScope[scope] = d
+			byCredentialScope[scope] = append(byCredentialScope[scope], d)
 		}
 	}
 	
@@ -59,14 +63,15 @@ func NewCatalog(descriptors []*ServiceDescriptor) *Catalog {
 	}
 }
 
-func (c *Catalog) ByCredentialScope(scope string) *ServiceDescriptor {
+func (c *Catalog) ByCredentialScope(scope string) []*ServiceDescriptor {
 	return c.byCredentialScope[scope]
 }
 
 
 func (c *Catalog) MatchTarget(target string) *TargetMatch {
+	// Try exact prefix match first
 	for _, entry := range c.targetPrefixes {
-		if len(target) >= len(entry.prefix) && target[:len(entry.prefix)] == entry.prefix {
+		if strings.HasPrefix(target, entry.prefix) {
 			return &TargetMatch{
 				Descriptor: entry.descriptor,
 				Prefix:     entry.prefix,
@@ -74,5 +79,26 @@ func (c *Catalog) MatchTarget(target string) *TargetMatch {
 			}
 		}
 	}
+	
+	// Fallback: match by action name after the last dot
+	if strings.Contains(target, ".") {
+		parts := strings.Split(target, ".")
+		action := parts[len(parts)-1]
+		
+		// Look for any service that has this target prefix as part of the full target
+		// or just match the action to any service that supports it?
+		// For health check, let's try to match the descriptor from the first entry
+		// that has a matching prefix in the full target string.
+		for _, entry := range c.targetPrefixes {
+			if strings.Contains(target, entry.prefix) {
+				return &TargetMatch{
+					Descriptor: entry.descriptor,
+					Prefix:     entry.prefix,
+					Action:     action,
+				}
+			}
+		}
+	}
+	
 	return nil
 }

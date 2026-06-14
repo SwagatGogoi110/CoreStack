@@ -65,6 +65,10 @@ func (s *ApiGatewayService) GetRestApi(ctx context.Context, id string) (*model.R
 	return api, nil
 }
 
+func (s *ApiGatewayService) ListRestApis(ctx context.Context) ([]*model.RestApi, error) {
+	return s.apiStore.Scan(ctx, func(k string) bool { return true })
+}
+
 func (s *ApiGatewayService) CreateResource(ctx context.Context, apiID, parentID, pathPart string) (*model.Resource, error) {
 	parent, ok, _ := s.resourceStore.Get(ctx, s.resourceKey(apiID, parentID))
 	if !ok {

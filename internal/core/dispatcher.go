@@ -29,6 +29,19 @@ func (s *Server) handleAWSRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 2.1 Check for API Gateway V2
+	if strings.HasPrefix(r.URL.Path, "/v2/apis") {
+		// Route to apigatewayv2 handler
+		body, _ := io.ReadAll(r.Body)
+		rc := common.FromContext(r.Context())
+		action := "GetApis"
+		if r.Method == "POST" { action = "CreateApi" }
+		res, _ := s.handlers["apigatewayv2"].HandleJSON(action, body, rc)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(res)
+		return
+	}
+
 	// 3. Check for Bedrock Runtime
 	if strings.HasPrefix(r.URL.Path, "/model/") {
 		s.bedrockruntime.ServeHTTP(w, r)
@@ -47,7 +60,62 @@ func (s *Server) handleAWSRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 6. Check for JSON protocols
+	// 6. Check for Amazon MQ
+	if strings.HasPrefix(r.URL.Path, "/v1/brokers") {
+		s.mq.ServeHTTP(w, r)
+		return
+	}
+
+	// 7. Generic REST-JSON routing for other services
+	if r.Header.Get("Content-Type") == "application/json" || r.Header.Get("Content-Type") == "" {
+		// Heuristics for common REST paths
+		if strings.HasPrefix(r.URL.Path, "/applications") {
+			s.handleGenericREST(w, r, "appconfig", "ListApplications")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/v1/apis") {
+			s.handleGenericREST(w, r, "appsync", "ListGraphqlApis")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/backup/plans") {
+			s.handleGenericREST(w, r, "backup", "ListBackupPlans")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/clusters") {
+			s.handleGenericREST(w, r, "eks", "ListClusters")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/v1/clusters") {
+			s.handleGenericREST(w, r, "msk", "ListClusters")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/2021-01-01/domain") {
+			s.handleGenericREST(w, r, "opensearch", "ListDomainNames")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/v1/pipes") {
+			s.handleGenericREST(w, r, "pipes", "ListPipes")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/schedules") {
+			s.handleGenericREST(w, r, "scheduler", "ListSchedules")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/async-invoke") {
+			s.handleGenericREST(w, r, "bedrock-runtime", "ListAsyncInvokes")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/canaries") {
+			s.handleGenericREST(w, r, "synthetics", "DescribeCanaries")
+			return
+		}
+		if strings.HasPrefix(r.URL.Path, "/TraceSummaries") {
+			s.handleGenericREST(w, r, "xray", "GetTraceSummaries")
+			return
+		}
+	}
+
+	// 8. Check for JSON protocols
 	if contentType == "application/x-amz-json-1.0" || contentType == "application/x-amz-json-1.1" {
 		s.handleJSONRequest(w, r)
 		return
@@ -93,6 +161,11 @@ func (s *Server) handleQueryRequest(w http.ResponseWriter, r *http.Request) {
 	rc := common.FromContext(r.Context())
 	response, err := handler.HandleQuery(action, r.Form, rc)
 	if err != nil {
+		// Distinguish between service not supporting action and internal failure
+		if strings.Contains(err.Error(), "Unknown") && strings.Contains(err.Error(), "action") {
+			// If we matched multiple services, try the next one? 
+			// For now, we've already resolved the service.
+		}
 		s.writeXmlError(w, "InternalFailure", err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -106,15 +179,35 @@ func (s *Server) resolveQueryService(auth, action string) string {
 		matches := servicePattern.FindStringSubmatch(auth)
 		if len(matches) > 1 {
 			scope := strings.ToLower(matches[1])
-			if d := s.catalog.ByCredentialScope(scope); d != nil {
-				return d.ExternalKey
+			descriptors := s.catalog.ByCredentialScope(scope)
+			if len(descriptors) == 1 {
+				return descriptors[0].ExternalKey
+			}
+			if len(descriptors) > 1 {
+				// Ambiguous scope (e.g. "rds" for RDS and DocDB)
+				// Heuristic: check if action starts with service prefix if defined,
+				// or use a hardcoded mapping for known collisions.
+				for _, d := range descriptors {
+					for _, prefix := range d.TargetPrefixes {
+						cleanPrefix := strings.TrimSuffix(prefix, ".")
+						if strings.HasPrefix(action, cleanPrefix) {
+							return d.ExternalKey
+						}
+					}
+				}
+				// Special cases for collisions without prefixes in catalog
+				if scope == "rds" {
+					if strings.Contains(action, "DBCluster") {
+						return "docdb"
+					}
+					return "rds"
+				}
+				return descriptors[0].ExternalKey // Fallback to first
 			}
 		}
 	}
 
-	// Fallback to infer from action if needed, but for now we expect auth for most SDKs.
-	// In the Java version there's a large inference map.
-	// For now, let's keep it simple and default to something if matched.
+	// Fallback to infer from action if needed
 	return "sqs" // Default fallback for now
 }
 
@@ -175,4 +268,23 @@ func (s *Server) handleJSONRequest(w http.ResponseWriter, r *http.Request) {
 func (s *Server) writeJSONError(w http.ResponseWriter, code, message string) {
 	w.WriteHeader(http.StatusBadRequest)
 	fmt.Fprintf(w, `{"__type":"%s","message":"%s"}`, code, message)
+}
+
+func (s *Server) handleGenericREST(w http.ResponseWriter, r *http.Request, service, action string) {
+	handler, ok := s.handlers[service]
+	if !ok {
+		s.writeJSONError(w, "UnknownOperationException", "Service not implemented: "+service)
+		return
+	}
+
+	body, _ := io.ReadAll(r.Body)
+	rc := common.FromContext(r.Context())
+	response, err := handler.HandleJSON(action, body, rc)
+	if err != nil {
+		s.writeJSONError(w, "InternalFailure", err.Error())
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

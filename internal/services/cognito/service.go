@@ -66,6 +66,10 @@ func (s *CognitoService) DescribeUserPool(ctx context.Context, id string) (*mode
 	return pool, nil
 }
 
+func (s *CognitoService) ListUserPools(ctx context.Context) ([]*model.UserPool, error) {
+	return s.poolStore.Scan(ctx, func(k string) bool { return true })
+}
+
 // User Pool Clients
 
 func (s *CognitoService) CreateUserPoolClient(ctx context.Context, userPoolID, clientName string) (*model.UserPoolClient, error) {

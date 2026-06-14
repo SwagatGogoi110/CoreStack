@@ -61,6 +61,19 @@ import (
 	"github.com/hectorvent/cloudstack/internal/services/textract"
 	"github.com/hectorvent/cloudstack/internal/services/transcribe"
 	"github.com/hectorvent/cloudstack/internal/services/transfer"
+	"github.com/hectorvent/cloudstack/internal/services/redshift"
+	"github.com/hectorvent/cloudstack/internal/services/emr"
+	"github.com/hectorvent/cloudstack/internal/services/mq"
+	"github.com/hectorvent/cloudstack/internal/services/docdb"
+	"github.com/hectorvent/cloudstack/internal/services/cloudtrail"
+	"github.com/hectorvent/cloudstack/internal/services/codecommit"
+	"github.com/hectorvent/cloudstack/internal/services/codepipeline"
+	"github.com/hectorvent/cloudstack/internal/services/xray"
+	"github.com/hectorvent/cloudstack/internal/services/waf"
+	"github.com/hectorvent/cloudstack/internal/services/organizations"
+	"github.com/hectorvent/cloudstack/internal/services/synthetics"
+	"github.com/hectorvent/cloudstack/internal/services/sagemaker"
+	"github.com/hectorvent/cloudstack/internal/services/apprunner"
 	"github.com/hectorvent/cloudstack/internal/storage"
 )
 
@@ -78,6 +91,7 @@ type Server struct {
 	cloudfront     *cloudfront.CloudFrontHandler
 	opensearch     *opensearch.OpenSearchJsonHandler
 	route53        *route53.Route53Handler
+	mq             *mq.MqHandler
 	duck           *cloudstack.DuckManager
 }
 
@@ -192,6 +206,7 @@ func NewServer() *Server {
 
 	// Initialize Bedrock Runtime
 	s.bedrockruntime = bedrockruntime.NewBedrockRuntimeHandler(bedrockruntime.NewBedrockRuntimeService())
+	s.handlers["bedrock-runtime"] = s.bedrockruntime
 
 	// Initialize Cost Explorer
 	s.handlers["ce"] = ce.NewCostExplorerJsonHandler(ce.NewCostExplorerService())
@@ -447,6 +462,47 @@ func NewServer() *Server {
 		log.Fatalf("Failed to initialize ACM: %v", err)
 	}
 	s.handlers["acm"] = acm.NewAcmJsonHandler(acmService)
+
+	// Initialize new services
+	redshiftService, _ := redshift.NewRedshiftService(storageFactory)
+	s.handlers["redshift"] = redshift.NewRedshiftQueryHandler(redshiftService)
+
+	emrService, _ := emr.NewEmrService(storageFactory)
+	s.handlers["emr"] = emr.NewEmrJsonHandler(emrService)
+
+	mqService, _ := mq.NewMqService(storageFactory)
+	s.mq = mq.NewMqHandler(mqService)
+	s.handlers["mq"] = s.mq
+
+	docdbService, _ := docdb.NewDocdbService(storageFactory)
+	s.handlers["docdb"] = docdb.NewDocdbQueryHandler(docdbService)
+
+	cloudtrailService, _ := cloudtrail.NewCloudtrailService(storageFactory)
+	s.handlers["cloudtrail"] = cloudtrail.NewCloudtrailJsonHandler(cloudtrailService)
+
+	codecommitService, _ := codecommit.NewCodecommitService(storageFactory)
+	s.handlers["codecommit"] = codecommit.NewCodecommitJsonHandler(codecommitService)
+
+	codepipelineService, _ := codepipeline.NewCodepipelineService(storageFactory)
+	s.handlers["codepipeline"] = codepipeline.NewCodepipelineJsonHandler(codepipelineService)
+
+	xrayService, _ := xray.NewXrayService(storageFactory)
+	s.handlers["xray"] = xray.NewXrayJsonHandler(xrayService)
+
+	wafService, _ := waf.NewWafService(storageFactory)
+	s.handlers["waf"] = waf.NewWafJsonHandler(wafService)
+
+	organizationsService, _ := organizations.NewOrganizationsService(storageFactory)
+	s.handlers["organizations"] = organizations.NewOrganizationsJsonHandler(organizationsService)
+
+	syntheticsService, _ := synthetics.NewSyntheticsService(storageFactory)
+	s.handlers["synthetics"] = synthetics.NewSyntheticsJsonHandler(syntheticsService)
+
+	sagemakerService, _ := sagemaker.NewSagemakerService(storageFactory)
+	s.handlers["sagemaker"] = sagemaker.NewSagemakerJsonHandler(sagemakerService)
+
+	apprunnerService, _ := apprunner.NewApprunnerService(storageFactory)
+	s.handlers["apprunner"] = apprunner.NewApprunnerJsonHandler(apprunnerService)
 
 	// Register basic routes
 	s.registerRoutes()

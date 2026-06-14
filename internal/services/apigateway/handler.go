@@ -83,7 +83,12 @@ func (h *ApiGatewayHandler) handleCreateRestApi(w http.ResponseWriter, r *http.R
 }
 
 func (h *ApiGatewayHandler) handleListRestApis(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+	ctx := context.Background()
+	apis, _ := h.service.ListRestApis(ctx)
+	res := map[string]any{
+		"items": apis,
+	}
+	json.NewEncoder(w).Encode(res)
 }
 
 func (h *ApiGatewayHandler) handleGetRestApi(w http.ResponseWriter, r *http.Request, apiID string) {

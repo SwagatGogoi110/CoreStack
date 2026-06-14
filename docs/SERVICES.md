@@ -28,55 +28,72 @@ graph TD
 | Service | Protocol | Storage | Status |
 | :--- | :--- | :--- | :--- |
 | **ACM** | JSON 1.1 | WAL | [x] Ported |
-| **API Gateway** | REST | WAL | [x] Ported |
-| **AppConfig** | JSON 1.1 | WAL | [x] Ported |
-| **AppSync** | JSON 1.1 | WAL | [x] Ported |
-| **Athena** | JSON 1.1 | WAL | [x] Ported |
-| **AutoScaling** | Query | WAL | [x] Ported |
-| **Backup** | JSON 1.1 | WAL | [x] Ported |
-| **Bedrock Runtime** | REST | N/A | [x] Ported |
-| **CloudFormation** | Query | WAL | [x] Ported |
-| **CloudFront** | REST/XML | WAL | [x] Ported |
-| **CloudWatch** | Query | WAL | [x] Ported |
-| **CodeBuild** | JSON 1.1 | WAL | [x] Ported |
-| **CodeDeploy** | JSON 1.1 | WAL | [x] Ported |
-| **Cognito** | JSON 1.1 | WAL | [x] Ported |
-| **Config** | JSON 1.1 | WAL | [x] Ported |
-| **Cost Explorer (CE)** | JSON 1.1 | N/A | [x] Ported |
+| **APIGATEWAY** | REST | WAL | [x] Ported |
+| **APIGATEWAYV2** | JSON | WAL | [x] Ported |
+| **APPCONFIG** | JSON 1.1 | WAL | [x] Ported |
+| **APPRUNNER** | JSON 1.1 | WAL | [x] Ported |
+| **APPSYNC** | JSON 1.1 | WAL | [x] Ported |
+| **ATHENA** | JSON 1.1 | WAL | [x] Ported |
+| **AUTOSCALING** | Query | WAL | [x] Ported |
+| **BACKUP** | JSON 1.1 | WAL | [x] Ported |
+| **BCMDATAEXPORTS** | JSON 1.1 | WAL | [x] Ported |
+| **BEDROCKRUNTIME** | REST | N/A | [x] Ported |
+| **CE** | JSON 1.1 | N/A | [x] Ported |
+| **CLOUDFORMATION** | Query | WAL | [x] Ported |
+| **CLOUDFRONT** | REST/XML | WAL | [x] Ported |
+| **CLOUDSTACK** | JSON 1.1 | WAL | [x] Ported |
+| **CLOUDTRAIL** | JSON 1.1 | WAL | [x] Ported |
+| **CLOUDWATCH** | Query | WAL | [x] Ported |
+| **CODEBUILD** | JSON 1.1 | WAL | [x] Ported |
+| **CODECOMMIT** | JSON 1.1 | WAL | [x] Ported |
+| **CODEDEPLOY** | JSON 1.1 | WAL | [x] Ported |
+| **CODEPIPELINE** | JSON 1.1 | WAL | [x] Ported |
+| **COGNITO** | JSON 1.1 | WAL | [x] Ported |
+| **CONFIGSERVICE** | JSON 1.1 | WAL | [x] Ported |
 | **CUR** | JSON 1.1 | WAL | [x] Ported |
-| **DynamoDB** | JSON 1.0 | WAL | [x] Ported |
+| **DOCDB** | Query | WAL | [x] Ported |
+| **DYNAMODB** | JSON 1.0 | WAL | [x] Ported |
 | **EC2** | Query | WAL | [x] Ported |
 | **ECR** | JSON 1.1 | WAL | [x] Ported |
 | **ECS** | JSON 1.1 | WAL | [x] Ported |
 | **EKS** | JSON 1.1 | WAL | [x] Ported |
-| **ElastiCache** | Query | WAL | [x] Ported |
-| **ELBv2** | Query | WAL | [x] Ported |
-| **EventBridge** | JSON 1.1 | WAL | [x] Ported |
-| **Firehose** | JSON 1.1 | WAL | [x] Ported |
-| **Glue** | JSON 1.1 | WAL | [x] Ported |
+| **ELASTICACHE** | Query | WAL | [x] Ported |
+| **ELBV2** | Query | WAL | [x] Ported |
+| **EMR** | JSON 1.1 | WAL | [x] Ported |
+| **EVENTBRIDGE** | JSON 1.1 | WAL | [x] Ported |
+| **FIREHOSE** | JSON 1.1 | WAL | [x] Ported |
+| **GLUE** | JSON 1.1 | WAL | [x] Ported |
 | **IAM** | Query | WAL | [x] Ported |
-| **Kinesis** | JSON 1.1 | WAL | [x] Ported |
+| **KINESIS** | JSON 1.1 | WAL | [x] Ported |
 | **KMS** | JSON 1.1 | WAL | [x] Ported |
-| **Lambda** | REST | WAL | [x] Ported |
+| **LAMBDA** | REST | WAL | [x] Ported |
+| **MQ** | REST-JSON | WAL | [x] Ported |
 | **MSK** | JSON 1.1 | WAL | [x] Ported |
-| **Neptune** | Query | WAL | [x] Ported |
-| **OpenSearch** | REST/JSON | WAL | [x] Ported |
-| **Pipes** | JSON 1.1 | WAL | [x] Ported |
-| **Pricing** | JSON 1.1 | N/A | [x] Ported |
+| **NEPTUNE** | Query | WAL | [x] Ported |
+| **OPENSEARCH** | REST/JSON | WAL | [x] Ported |
+| **ORGANIZATIONS** | JSON 1.1 | WAL | [x] Ported |
+| **PIPES** | JSON 1.1 | WAL | [x] Ported |
+| **PRICING** | JSON 1.1 | N/A | [x] Ported |
 | **RDS** | Query | WAL | [x] Ported |
-| **Resource Tagging** | JSON 1.1 | WAL | [x] Ported |
-| **Route53** | REST/XML | WAL | [x] Ported |
+| **REDSHIFT** | Query | WAL | [x] Ported |
+| **RESOURCEGROUPSTAGGING** | JSON 1.1 | WAL | [x] Ported |
+| **ROUTE53** | REST/XML | WAL | [x] Ported |
 | **S3** | REST | File/WAL | [x] Ported |
-| **Scheduler** | JSON 1.1 | WAL | [x] Ported |
-| **Secrets Manager** | JSON 1.1 | WAL | [x] Ported |
+| **SAGEMAKER** | JSON 1.1 | WAL | [x] Ported |
+| **SCHEDULER** | JSON 1.1 | WAL | [x] Ported |
+| **SECRETSMANAGER** | JSON 1.1 | WAL | [x] Ported |
 | **SES** | Query | WAL | [x] Ported |
 | **SNS** | Query | WAL | [x] Ported |
 | **SQS** | Query | WAL | [x] Ported |
 | **SSM** | JSON 1.1 | WAL | [x] Ported |
-| **Step Functions** | JSON 1.0 | WAL | [x] Ported |
-| **Textract** | JSON 1.1 | N/A | [x] Ported |
-| **Transcribe** | JSON 1.1 | WAL | [x] Ported |
-| **Transfer** | JSON 1.1 | WAL | [x] Ported |
+| **STEPFUNCTIONS** | JSON 1.0 | WAL | [x] Ported |
+| **STS** | Query | WAL | [x] Ported |
+| **SYNTHETICS** | JSON 1.1 | WAL | [x] Ported |
+| **TEXTRACT** | JSON 1.1 | N/A | [x] Ported |
+| **TRANSCRIBE** | JSON 1.1 | WAL | [x] Ported |
+| **TRANSFER** | JSON 1.1 | WAL | [x] Ported |
+| **WAF** | JSON 1.1 | WAL | [x] Ported |
+| **XRAY** | JSON 1.1 | WAL | [x] Ported |
 
 ---
 
